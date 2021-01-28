@@ -1,0 +1,126 @@
+<html>
+<head>
+<script>
+
+window.onload = function() {
+
+  // Initialise an empty canvas and place it on the page
+  var canvas = document.createElement("canvas");
+  var context = canvas.getContext("2d");
+  //canvas.width = 800;
+  canvas.width = window.innerWidth;
+  //canvas.height = 380;
+  canvas.height = window.innerHeight;
+  //alert( "Width: " + canvas.width + "<br>Height: " +canvas.height );
+  document.body.appendChild(canvas);
+  //context.fillRect(0, 0, canvas.width, canvas.height);
+
+  var particles = {},
+    particleIndex = 0,
+    settings = {
+      density: 20,
+      particleSize: 10 ,
+      startingX: canvas.width / 2,
+      startingY: canvas.height / 4,
+      gravity: 0.5,
+      maxLife: 100,
+      groundLevel: canvas.height*0.90,
+      leftWall: canvas.width*0.15,
+      rightWall: canvas.width*0.85
+    };
+
+    function Particle() {
+      // Establish starting positions and velocities
+      this.x = settings.startingX;
+      this.y = settings.startingY;
+
+      // Random X and Y velocities
+      this.vx = Math.random() * 20 - 12;
+      this.vy = Math.random() * 25 - 5;
+
+      // Add new particle to the index
+      particleIndex ++;
+      particles[particleIndex] = this;
+      this.id = particleIndex;
+      this.life = 0;
+    }
+
+    Particle.prototype.draw = function() {
+      this.x += this.vx;
+      this.y += this.vy;
+
+
+      // Bounce off the ground
+      if ((this.y + settings.particleSize) > settings.groundLevel) {
+        this.vy *= -0.6;
+        this.vx *= 0.75;
+        this.y = settings.groundLevel - settings.particleSize;
+      }
+
+      // Determine whether to bounce the particle off a wall
+      if (this.x - (settings.particleSize) <= settings.leftWall) {
+        this.vx *= -1;
+        this.x = settings.leftWall + (settings.particleSize);
+      }
+
+      if (this.x + (settings.particleSize) >= settings.rightWall) {
+        this.vx *= -1;
+        this.x = settings.rightWall - settings.particleSize;
+      }
+
+      // Adjust for gravity
+      this.vy += settings.gravity;
+
+      // Age the particle
+      this.life++;
+
+      // If Particle is old, remove it
+      if (this.life >= settings.maxLife) {
+        delete particles[this.id];
+      }
+      //Random size for each frame
+      settings.particleSize=Math.random() * 10;
+      // Create the shapes
+      context.clearRect(settings.leftWall, settings.groundLevel, canvas.width, canvas.height);
+      context.beginPath();
+      context.fillStyle="#ffffff";
+      context.arc(this.x, this.y, settings.particleSize, 0, Math.PI*2, true);
+      context.closePath();
+      context.fill();
+    }
+    setInterval(function() {
+      context.fillStyle = "rgba(100,10,10,0.6)";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw a left, right walls and floor
+      context.fillStyle = "white";
+      context.fillRect(0, 0, settings.leftWall, canvas.height);
+      context.fillRect(settings.rightWall, 0, canvas.width, canvas.height);
+      context.fillRect(0, settings.groundLevel, canvas.width, canvas.height);
+
+      // Draw the particles
+      for (var i = 0; i < settings.density; i++) {
+        if (Math.random() > 0.994) {
+          // Introducing a random chance of creating a particle
+          // corresponding to an chance of 1 per second,
+          // per "density" value
+          new Particle();
+        }
+      }
+
+      for (var i in particles) {
+        particles[i].draw();
+      }
+    }, 30);
+
+};
+</script>
+</head>
+<body>
+
+<canvas id="universe">
+The universe is yet to reach a perpetual big bang
+</canvas>
+</body>
+
+</html>
